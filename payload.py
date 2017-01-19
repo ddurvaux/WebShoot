@@ -22,15 +22,16 @@ from selenium import webdriver
 """
 def main():
 
-    browsers = [
-    	webdriver.Ie()
-    ]    
+    browsers = {
+    #    "ie" : webdriver.Ie(),
+        "firefox" : webdriver.Firefox(),
+    }    
 
     # Take a screenshot with each browser
-    for browser in browsers:
-   		browser.get("http://www.google.be")
-   		browser.save_screenshot("screenshot.png")
-   		bowser.quit()
+    for browser in browsers.keys():
+    		browsers[browser].get("http://www.autopsit.com")
+    		browsers[browser].save_screenshot("%s_screenshot.png" % browser)
+    		browsers[browser].quit()
 
     return
 
