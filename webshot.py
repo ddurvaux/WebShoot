@@ -18,7 +18,6 @@ import argparse
 import subprocess
 from threading import Thread
 
-
 """
     VMWare Workstation driving
 """
@@ -91,27 +90,20 @@ class VMWare:
     return output
 
 # --------------------------------------------------------------------------- #
-class Recorder():
 
-  tcpdump = None # pointer to tcpdump process
-  proxy = None   # pointer to proxy process
+def recordPCAP():
+  """
+     Launch tcpdump to regard traffic passing through VM interface
+  """
+  tcpdump = subprocess.Popen([configuration.TCPDUMP, "-i", configuration.REC_IF, "-w", "capture.pcap"])
+  return tcpdump
 
-  def __init__(self):
-    pass
-
-  def recordPCAP(self):
-    """
-       Launch tcpdump to regard traffic passing through VM interface
-    """
-    self.tcpdump = subprocess.Popen([configuration.TCPDUMP, "-i", configuration.REC_IF, "-w", "capture.pcap"])
-    return
-
-  def startMitmProxy(self):
-    """
-      Launch MITMProxy to record all the requests done by the website
-    """
-    self.proxy = subprocess.Popen([configuration.PROXY])
-    return
+def startMitmProxy():
+  """
+    Launch MITMProxy to record all the requests done by the website
+  """
+  proxy = subprocess.Popen([configuration.PROXY])
+  return proxy
 
 # --------------------------------------------------------------------------- #
 """
@@ -131,9 +123,9 @@ def main():
     myvm.upload_prerequities()
 
     # Recording Thread - w/ tcpdump
-    recorder = Recorder()
-    pcapThread = Thread(target=recorder.recordPCAP, args = [])
-    pcapThread.start()
+    tcpdump = recordPCAP()
+    #pcapThread = Thread(target=recorder.recordPCAP, args = [])
+    #pcapThread.start()
 
     # Start proxy and record traffic
     # -- TODO --
@@ -142,7 +134,7 @@ def main():
     # -- TODO --
 
     # Stop recording
-    recorder.tcpdump.terminate()
+    tcpdump.terminate()
 
     # Restore state of VM and cleanup
     #myvm.stop_vm()
