@@ -14,9 +14,13 @@
     Copyright: Autopsit (N-Labs sprl) 2017
 """
 import configuration
+
+import re
 import argparse
+import datetime
 import subprocess
 from threading import Thread
+
 
 """
     VMWare Workstation driving
@@ -90,13 +94,13 @@ class VMWare:
     return output
 
 # --------------------------------------------------------------------------- #
-
 def recordPCAP():
   """
      Launch tcpdump to regard traffic passing through VM interface
   """
   tcpdump = subprocess.Popen([configuration.TCPDUMP, "-i", configuration.REC_IF, "-w", "capture.pcap"])
   return tcpdump
+
 
 def startMitmProxy():
   """
@@ -105,7 +109,27 @@ def startMitmProxy():
   proxy = subprocess.Popen([configuration.PROXY])
   return proxy
 
+
+def createDirectories(url):
+  """
+    Create a working directory to store snapshots, PCAP and proxy logs
+  """
+  try:
+    # strip of http or https and keep the fqdn
+    m = re.search("(http://|https://)?([\w+\.]+)/?(.*)", url)
+    url = m.group(2)
+    date = datetime.datetime.today().strftime('%Y%m%d%H%M%S')
+
+    # create directory
+    dirname = "./cases/%s/%s" % (url, date)
+    os.makedirs(dirname)
+    return dirname
+  except:
+    print("FATAL ERROR: impossible to create case directory for %s" % url)    
+  return None
 # --------------------------------------------------------------------------- #
+
+
 """
     Main function
 """
@@ -123,6 +147,7 @@ def main():
     myvm.upload_prerequities()
 
     # Recording Thread - w/ tcpdump
+    workdir = createDirectories(results.url)
     tcpdump = recordPCAP()
     #pcapThread = Thread(target=recorder.recordPCAP, args = [])
     #pcapThread.start()
