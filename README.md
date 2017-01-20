@@ -20,4 +20,4 @@ Framework for analysis of suspicious website
 1. Install operating system of choice (dev/test on Windows 10)
 1. Install Python 2.7
 1. <tt>pip install selenium</tt>
-
+1. Install mitmproxy: <tt>t$ sudo apt-get install mitmproxy</tt>

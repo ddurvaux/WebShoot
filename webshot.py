@@ -102,6 +102,13 @@ def recordPCAP():
   tcpdump = subprocess.Popen([configuration.TCPDUMP, "-i", configuration.REC_IF, "-w", "capture.pcap"])
   return
 
+def startMitmProxy():
+  """
+    Launch MITMProxy to record all the requests done by the website
+  """
+  global proxy
+  proxy = subprocess.Popen([configuration.PROXY])
+  return
 
 # --------------------------------------------------------------------------- #
 """
