@@ -91,38 +91,38 @@ class VMWare:
     return output
 
 # --------------------------------------------------------------------------- #
-tcpdump = None # pointer to tcpdump process
-proxy = None   # pointer to proxy process
+class Recorder():
 
-def recordPCAP():
-  """
-     Launch tcpdump to regard traffic passing through VM interface
-  """
-  global tcpdump
-  tcpdump = subprocess.Popen([configuration.TCPDUMP, "-i", configuration.REC_IF, "-w", "capture.pcap"])
-  return
+  tcpdump = None # pointer to tcpdump process
+  proxy = None   # pointer to proxy process
 
-def startMitmProxy():
-  """
-    Launch MITMProxy to record all the requests done by the website
-  """
-  global proxy
-  proxy = subprocess.Popen([configuration.PROXY])
-  return
+  def __init__(self):
+    pass
+
+  def recordPCAP(self):
+    """
+       Launch tcpdump to regard traffic passing through VM interface
+    """
+    self.tcpdump = subprocess.Popen([configuration.TCPDUMP, "-i", configuration.REC_IF, "-w", "capture.pcap"])
+    return
+
+  def startMitmProxy(self):
+    """
+      Launch MITMProxy to record all the requests done by the website
+    """
+    self.proxy = subprocess.Popen([configuration.PROXY])
+    return
 
 # --------------------------------------------------------------------------- #
 """
     Main function
 """
 def main():
-    global tcpdump
-    global proxy
-
+    
     # Parse command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--url', action='store', dest='url', help='URL to browse', required=True)
     results = parser.parse_args()
-
 
     # Kick-off the analysis
     myvm =  VMWare(configuration.VMRUN, configuration.VMPATH)
@@ -131,7 +131,8 @@ def main():
     myvm.upload_prerequities()
 
     # Recording Thread - w/ tcpdump
-    pcapThread = Thread(target=recordPCAP, args = [])
+    recorder = Recorder()
+    pcapThread = Thread(target=recorder.recordPCAP, args = [])
     pcapThread.start()
 
     # Start proxy and record traffic
@@ -141,7 +142,7 @@ def main():
     # -- TODO --
 
     # Stop recording
-    tcpdump.terminate()
+    recorder.tcpdump.terminate()
 
     # Restore state of VM and cleanup
     #myvm.stop_vm()
