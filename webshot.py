@@ -13,8 +13,11 @@
 
     Copyright: Autopsit (N-Labs sprl) 2017
 """
+# Import configuration
 import configuration
 
+# Packages required
+import os
 import re
 import argparse
 import datetime
@@ -31,9 +34,11 @@ class VMWare:
   vmuser = None
   vmpass = None
 
+
   def __init__( self, vmrun, vmpath ):
       self.vmrun  = vmrun
       self.vmpath = vmpath
+
 
   def start_vm(self):
       """
@@ -42,25 +47,31 @@ class VMWare:
       self.__call_vmrun__("start")
       return
 
+
   def stop_vm(self):
       self.__call_vmrun__("stop")
       return
+
 
   def take_snapshot(self):
       self.__call_vmrun__("snapshot", "webshot snapshot")
       return
 
+
   def revert_snapshot(self):
       self.__call_vmrun__("revertToSnapshot", "webshot snapshot")
       return
+
 
   def delete_snapshot(self):
       self.__call_vmrun__("deleteSnapshot", "webshot snapshot")
       return
 
+
   def upload_prerequities(self):
       self.__call_vmrun__("directoryExistsInGuest", "C:\\Scripts\\")
       return
+
 
   def __call_vmrun__(self, cmd, *options):
     output = None
@@ -86,23 +97,25 @@ class VMWare:
 
       # call process and retrieve output
       process = subprocess.Popen(fullcmd)
-      output = process.stdout.read()
-      print("== DEBUG : %s ==" % output)
+      # !! FIX THIS !!
+      #output = process.stdout.read()
+      #print("== DEBUG : %s ==" % output)
     except Exception as e:
-      print("FATAL ERROR, VM command: =%s=" % fullcmd)
+      print("FATAL ERROR, VM command: %s" % fullcmd)
       print(e)
     return output
 
+
 # --------------------------------------------------------------------------- #
-def recordPCAP():
+def recordPCAP(workdir="./"):
   """
      Launch tcpdump to regard traffic passing through VM interface
   """
-  tcpdump = subprocess.Popen([configuration.TCPDUMP, "-i", configuration.REC_IF, "-w", "capture.pcap"])
+  tcpdump = subprocess.Popen([configuration.TCPDUMP, "-i", configuration.REC_IF, "-w", "%s/capture.pcap" % workdir])
   return tcpdump
 
 
-def startMitmProxy():
+def startMitmProxy(workdir="./"):
   """
     Launch MITMProxy to record all the requests done by the website
   """
@@ -122,7 +135,11 @@ def createDirectories(url):
 
     # create directory
     dirname = "./cases/%s/%s" % (url, date)
-    os.makedirs(dirname)
+    try:
+      os.makedirs(dirname)
+    except Exception as e:
+      print("ERROR, failed to create directories: %s" % dirname)
+      print(e)
     return dirname
   except:
     print("FATAL ERROR: impossible to create case directory for %s" % url)    
@@ -142,29 +159,29 @@ def main():
 
     # Kick-off the analysis
     myvm =  VMWare(configuration.VMRUN, configuration.VMPATH)
-    myvm.take_snapshot()
+    myvm.take_snapshot()     
     myvm.start_vm()
     myvm.upload_prerequities()
 
+    workdir=createDirectories(results.url)
     # Recording Thread - w/ tcpdump
-    workdir = createDirectories(results.url)
-    tcpdump = recordPCAP()
-    #pcapThread = Thread(target=recorder.recordPCAP, args = [])
-    #pcapThread.start()
-
+    tcpdump = recordPCAP(workdir)
+    
     # Start proxy and record traffic
-    # -- TODO --
+    #proxy = startMitmProxy(workdir)
 
     # Browse website in VM
     # -- TODO --
 
     # Stop recording
     tcpdump.terminate()
+    #proxy.terminate()
 
     # Restore state of VM and cleanup
-    #myvm.stop_vm()
-    #myvm.revert_snapshot()
+    myvm.stop_vm()
+    myvm.revert_snapshot()
     return
+
 
 """
    Call main function
