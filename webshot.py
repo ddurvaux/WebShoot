@@ -35,11 +35,13 @@ class VMWare:
   vmpass = None
   scpath = "C:\\Scripts\\"
   payload = "payload.py"
+  pypath = None
 
 
-  def __init__( self, vmrun, vmpath ):
+  def __init__( self, vmrun, vmpath , pypath="C:\\Python27\\python.exe"):
       self.vmrun  = vmrun
       self.vmpath = vmpath
+      self.pypath = pypath
 
 
   def start_vm(self):
@@ -81,7 +83,7 @@ class VMWare:
       return
 
   def run_payload(self):
-    output = self.__call_vmrun("runScriptInGuest", "C:\\Python\python.exe", "%s\\%s" % (self.scpath, self.payload))
+    output = self.__call_vmrun("runScriptInGuest", self.pypath, "%s\\%s" % (self.scpath, self.payload))
     return
 
   def retrieve_results(self):
