@@ -33,6 +33,8 @@ class VMWare:
   vmpath = ""
   vmuser = None
   vmpass = None
+  scpath = "C:\\Scripts\\"
+  payload = "payload.py"
 
 
   def __init__( self, vmrun, vmpath ):
@@ -71,13 +73,19 @@ class VMWare:
   def upload_prerequities(self):
       # Check if script directory exists
       output = self.__call_vmrun__("directoryExistsInGuest", "C:\\Scripts\\")
-      if "does not exist" not in output:
-        self.__call_vmrun__("createDirectoryInGuest", "C:\\Scripts\\")
+      if "does not exist" in output:
+        self.__call_vmrun__("createDirectoryInGuest", self.scpath)
 
       # Copy payload to guest
-      self.__call_vmrun__("copyFileFromHostToGuest", "./payload.py", "C:\\Scripts\\payload.py")
-
+      self.__call_vmrun__("copyFileFromHostToGuest", self.payload, "%s\\%s" % (self.scpath, self.payload))
       return
+
+  def run_payload(self):
+    output = self.__call_vmrun("runScriptInGuest", "C:\\Python\python.exe", "%s\\%s" % (self.scpath, self.payload))
+    return
+
+  def retrieve_results(self):
+    return
 
 
   def __call_vmrun__(self, cmd, *options):
@@ -178,13 +186,14 @@ def main():
     #proxy = startMitmProxy(workdir)
 
     # Browse website in VM
-    # -- TODO --
+    myvm.run_payload()
 
     # Stop recording
     tcpdump.terminate()
     #proxy.terminate()
 
     # Restore state of VM and cleanup
+    myvm.retrieve_results()
     #myvm.stop_vm()
     #myvm.revert_snapshot()
     return
