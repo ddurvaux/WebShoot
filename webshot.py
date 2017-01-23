@@ -69,7 +69,14 @@ class VMWare:
 
 
   def upload_prerequities(self):
-      self.__call_vmrun__("directoryExistsInGuest", "C:\\Scripts\\")
+      # Check if script directory exists
+      output = self.__call_vmrun__("directoryExistsInGuest", "C:\\Scripts\\")
+      if "does not exist" not in output:
+        self.__call_vmrun__("createDirectoryInGuest", "C:\\Scripts\\")
+
+      # Copy payload to guest
+      self.__call_vmrun__("copyFileFromHostToGuest", "./payload.py", "C:\\Scripts\\payload.py")
+
       return
 
 
@@ -96,10 +103,10 @@ class VMWare:
       fullcmd = fullcmd + list(options)      
 
       # call process and retrieve output
-      process = subprocess.Popen(fullcmd)
-      # !! FIX THIS !!
-      #output = process.stdout.read()
-      #print("== DEBUG : %s ==" % output)
+      process = subprocess.Popen(fullcmd, stdout=subprocess.PIPE)
+      output = process.stdout.read()
+      process.wait() # wait process to complete
+      print("VMRUN Result: %s" % output)
     except Exception as e:
       print("FATAL ERROR, VM command: %s" % fullcmd)
       print(e)
@@ -178,8 +185,8 @@ def main():
     #proxy.terminate()
 
     # Restore state of VM and cleanup
-    myvm.stop_vm()
-    myvm.revert_snapshot()
+    #myvm.stop_vm()
+    #myvm.revert_snapshot()
     return
 
 
