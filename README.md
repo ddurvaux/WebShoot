@@ -14,10 +14,19 @@ Framework for analysis of suspicious website
 ## Installation
 
 ### Host preparation
+1. Install mitmproxy: <tt>$ sudo apt-get install mitmproxy</tt>
 
 ### VM preparation
 
 1. Install operating system of choice (dev/test on Windows 10)
 1. Install Python 2.7
 1. <tt>pip install selenium</tt>
-1. Install mitmproxy: <tt>t$ sudo apt-get install mitmproxy</tt>
+1. Install Firefox
+1. Install Selenium drivers for Internet Explorer and Firefox
+
+
+Note for Proxy users, to use PIP, set proxy with the following command
+<pre>
+	set HTTP_PROXY=http://<username>:<password>@<proxy address>:<port>
+</pre>
+
