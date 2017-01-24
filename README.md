@@ -15,6 +15,7 @@ Framework for analysis of suspicious website
 
 ### Host preparation
 1. Install mitmproxy: <tt>$ sudo apt-get install mitmproxy</tt>
+2. Check that <tt>tcpdump</tt> is installed
 
 ### VM preparation
 
