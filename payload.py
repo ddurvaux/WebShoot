@@ -16,7 +16,6 @@
 """
 from selenium import webdriver
 
-
 """
     Main function
 """
@@ -32,7 +31,6 @@ def main():
     		browsers[browser].get("http://www.autopsit.com")
     		browsers[browser].save_screenshot("%s_screenshot.png" % browser)
     		browsers[browser].quit()
-
     return
 
 """

@@ -8,6 +8,10 @@
        - multiple browser support
        - start/stop network capture
        - start/stop OS monitoring (process, registry changes...)
+       - extract network artifact
+       - search VT + Google Safe Browsing
+       - extract JS and run JSBeautifuler
+       - ...
 
     Version: 0.0 - dev / poc Version
 
@@ -36,6 +40,7 @@ class VMWare:
   scpath = "C:\\Scripts\\"
   payload = "payload.py"
   pypath = None
+  debug = True
 
 
   def __init__( self, vmrun, vmpath , pypath="C:\\Python27\\python.exe"):
@@ -83,7 +88,8 @@ class VMWare:
       return
 
   def run_payload(self):
-    output = self.__call_vmrun("runScriptInGuest", self.pypath, "%s\\%s" % (self.scpath, self.payload))
+    #output = self.__call_vmrun__("runScriptInGuest", self.pypath, "%s\\%s" % (self.scpath, self.payload))
+    output = self.__call_vmrun__("runProgramInGuest", "-activeWindow", "%s %s\\%s" % ("python", self.scpath, self.payload))
     return
 
   def retrieve_results(self):
@@ -116,7 +122,8 @@ class VMWare:
       process = subprocess.Popen(fullcmd, stdout=subprocess.PIPE)
       output = process.stdout.read()
       process.wait() # wait process to complete
-      print("VMRUN Result: %s" % output)
+      if self.debug:
+        print("VMRUN Result: %s" % output)
     except Exception as e:
       print("FATAL ERROR, VM command: %s" % fullcmd)
       print(e)
@@ -136,7 +143,7 @@ def startMitmProxy(workdir="./"):
   """
     Launch MITMProxy to record all the requests done by the website
   """
-  proxy = subprocess.Popen([configuration.PROXY])
+  proxy = subprocess.Popen([configuration.PROXYCMD, "-w", "%s/%s" % (workdir, "proxy.txt")])
   return proxy
 
 
@@ -185,19 +192,19 @@ def main():
     tcpdump = recordPCAP(workdir)
     
     # Start proxy and record traffic
-    #proxy = startMitmProxy(workdir)
+    proxy = startMitmProxy(workdir)
 
     # Browse website in VM
     myvm.run_payload()
 
     # Stop recording
     tcpdump.terminate()
-    #proxy.terminate()
+    proxy.terminate()
 
     # Restore state of VM and cleanup
     myvm.retrieve_results()
-    #myvm.stop_vm()
-    #myvm.revert_snapshot()
+    myvm.stop_vm()
+    myvm.revert_snapshot()
     return
 
 
