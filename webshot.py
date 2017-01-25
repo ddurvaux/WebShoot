@@ -37,13 +37,13 @@ class VMWare:
   vmpath = ""
   vmuser = None
   vmpass = None
-  scpath = "C:\\Scripts\\"
+  scpath = "C:\Scripts"
   payload = "payload.py"
   pypath = None
   debug = True
 
 
-  def __init__( self, vmrun, vmpath , pypath="C:\\Python27\\python.exe"):
+  def __init__( self, vmrun, vmpath , pypath="C:\Python27\python.exe"):
       self.vmrun  = vmrun
       self.vmpath = vmpath
       self.pypath = pypath
@@ -89,7 +89,10 @@ class VMWare:
 
   def run_payload(self, url):
     #output = self.__call_vmrun__("runScriptInGuest", self.pypath, "%s\\%s" % (self.scpath, self.payload))
-    output = self.__call_vmrun__("runProgramInGuest", "-activeWindow", "%s %s\\%s -u %s" % ("python", self.scpath, self.payload, url))
+    #output = self.__call_vmrun__("runProgramInGuest", "-interactive", self.pypath, "%s\%s" % (self.scpath, self.payload), "-u",  "%s" % (url))
+    output = self.__call_vmrun__("runProgramInGuest", "-interactive", "C:\Scripts\payload.exe", "-u",  "%s" % (url))
+    #output = self.__call_vmrun__("runProgramInGuest", "-interactive", self.pypath)
+    #output = self.__call_vmrun__("runProgramInGuest", "-activeWindow", "calc.exe")  # DEBUG -- works!!
     return
 
   def retrieve_results(self):
@@ -123,6 +126,7 @@ class VMWare:
       output = process.stdout.read()
       process.wait() # wait process to complete
       if self.debug:
+        print("VMRUN command: %s" % fullcmd)
         print("VMRUN Result: %s" % output)
     except Exception as e:
       print("FATAL ERROR, VM command: %s" % fullcmd)
@@ -135,7 +139,11 @@ def recordPCAP(workdir="./"):
   """
      Launch tcpdump to regard traffic passing through VM interface
   """
-  tcpdump = subprocess.Popen([configuration.TCPDUMP, "-i", configuration.REC_IF, "-w", "%s/capture.pcap" % workdir])
+  tcpdump = None
+  try:
+    tcpdump = subprocess.Popen([configuration.TCPDUMP, "-i", configuration.REC_IF, "-w", "%s/capture.pcap" % workdir])
+  except:
+    print("ERROR: no tcpdump capture for this run")
   return tcpdump
 
 
@@ -143,7 +151,11 @@ def startMitmProxy(workdir="./"):
   """
     Launch MITMProxy to record all the requests done by the website
   """
-  proxy = subprocess.Popen([configuration.PROXYCMD, "-w", "%s/%s" % (workdir, "proxy.txt")])
+  proxy = None
+  try:
+    proxy = subprocess.Popen([configuration.PROXYCMD, "-w", "%s/%s" % (workdir, "proxy.txt")])
+  except:
+    print("ERROR: no proxy for this run")
   return proxy
 
 
@@ -175,7 +187,6 @@ def createDirectories(url):
     Main function
 """
 def main():
-    
     # Parse command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--url', action='store', dest='url', help='URL to browse', required=True)
@@ -185,7 +196,7 @@ def main():
     myvm =  VMWare(configuration.VMRUN, configuration.VMPATH)
     myvm.take_snapshot()     
     myvm.start_vm()
-    myvm.upload_prerequities()
+    #myvm.upload_prerequities()
 
     workdir=createDirectories(results.url)
     # Recording Thread - w/ tcpdump
@@ -198,13 +209,15 @@ def main():
     myvm.run_payload(results.url)
 
     # Stop recording
-    tcpdump.terminate()
-    proxy.terminate()
+    if tcpdump is not None:
+      tcpdump.terminate()
+    if proxy is not None:
+      proxy.terminate()
 
     # Restore state of VM and cleanup
     myvm.retrieve_results()
-    myvm.stop_vm()
-    myvm.revert_snapshot()
+    #myvm.stop_vm()
+    #myvm.revert_snapshot()
     return
 
 
