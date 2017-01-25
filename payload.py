@@ -3,7 +3,7 @@
 
 """
     Set of scripts to open a website in multiple browser and retrieve data
-    -- THIS SCRIPT WILL RUN ON THE "VICTIM" HOST
+    -- THIS SCRIPT WILL RUN ON THE "VICTIM" HOST (pushed by webshot.py)
 
     IDEA/TODO
        - multiple browser support
