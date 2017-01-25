@@ -24,10 +24,12 @@ Framework for analysis of suspicious website
 1. <tt>pip install selenium</tt>
 1. Install Firefox
 1. Install Selenium drivers for Internet Explorer and Firefox
+1. Set a password for user (required to run remotely script)
+1. Enable auto-logon of user
 
 
 Note for Proxy users, to use PIP, set proxy with the following command
 <pre>
-	set HTTP_PROXY=http://<username>:<password>@<proxy address>:<port>
+	set HTTP_PROXY=http://[username]:[password]@[proxy address]:[port]
 </pre>
 
