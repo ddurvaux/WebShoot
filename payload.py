@@ -14,12 +14,19 @@
 
     Copyright: Autopsit (N-Labs sprl) 2017
 """
+import argparse
 from selenium import webdriver
 
 """
     Main function
 """
 def main():
+
+    # Parsing arguments
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u', '--url', action='store', dest='url', help='URL to browse', required=True)
+    results = parser.parse_args()
 
     browsers = {
     #    "ie" : webdriver.Ie(),
@@ -28,7 +35,7 @@ def main():
 
     # Take a screenshot with each browser
     for browser in browsers.keys():
-    		browsers[browser].get("http://www.autopsit.com")
+    		browsers[browser].get(results.url)
     		browsers[browser].save_screenshot("%s_screenshot.png" % browser)
     		browsers[browser].quit()
     return

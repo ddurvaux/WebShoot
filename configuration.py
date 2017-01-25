@@ -1,4 +1,4 @@
-VMRUN="/usr/bin/vmrun"
+VMRUN="/usr/bin/vmrun" # on Mac OS X: /Applications/VMware\ Fusion.app/Contents/Library/vmrun
 VMPATH="/media/durvada/2e86542c-3270-4b22-919f-f1867a4615b6/vmware/Victim Windows 10/Victim Windows 10.vmx"
 GUEST_USER="david"
 GUEST_PASS="david"

@@ -87,9 +87,9 @@ class VMWare:
       self.__call_vmrun__("copyFileFromHostToGuest", self.payload, "%s\\%s" % (self.scpath, self.payload))
       return
 
-  def run_payload(self):
+  def run_payload(self, url):
     #output = self.__call_vmrun__("runScriptInGuest", self.pypath, "%s\\%s" % (self.scpath, self.payload))
-    output = self.__call_vmrun__("runProgramInGuest", "-activeWindow", "%s %s\\%s" % ("python", self.scpath, self.payload))
+    output = self.__call_vmrun__("runProgramInGuest", "-activeWindow", "%s %s\\%s -u %s" % ("python", self.scpath, self.payload, url))
     return
 
   def retrieve_results(self):
@@ -195,7 +195,7 @@ def main():
     proxy = startMitmProxy(workdir)
 
     # Browse website in VM
-    myvm.run_payload()
+    myvm.run_payload(results.url)
 
     # Stop recording
     tcpdump.terminate()
