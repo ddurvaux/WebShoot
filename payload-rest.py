@@ -14,7 +14,7 @@
 
     Copyright: Autopsit (N-Labs sprl) 2017
 """
-import argparse
+import base64
 from selenium import webdriver
 from bottle import Bottle, route, run, template # REST-API for client / server communication
 
@@ -25,6 +25,7 @@ app = Bottle()
 """
 @app.route("/browse/<b64url>")
 def browse(b64url):
+    url = base64.b64decode(b64url)
     print("Requested to browse: %s" % url)
     
     browsers = {

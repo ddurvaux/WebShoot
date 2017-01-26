@@ -23,6 +23,8 @@ import configuration
 # Packages required
 import os
 import re
+import base64
+import requests
 import argparse
 import datetime
 import subprocess
@@ -39,14 +41,11 @@ class VMWare:
   vmpass = None
   scpath = "C:\Scripts"
   payload = "payload.py"
-  pypath = None
   debug = True
 
-
-  def __init__( self, vmrun, vmpath , pypath="C:\Python27\python.exe"):
+  def __init__( self, vmrun, vmpath):
       self.vmrun  = vmrun
       self.vmpath = vmpath
-      self.pypath = pypath
 
 
   def start_vm(self):
@@ -88,11 +87,16 @@ class VMWare:
       return
 
   def run_payload(self, url):
+    
+    """
+      NOT WORKING !! Issue to pass arguments to Python - use REST API communication instead
+    """
     #output = self.__call_vmrun__("runScriptInGuest", self.pypath, "%s\\%s" % (self.scpath, self.payload))
     #output = self.__call_vmrun__("runProgramInGuest", "-interactive", self.pypath, "%s\%s" % (self.scpath, self.payload), "-u",  "%s" % (url))
-    output = self.__call_vmrun__("runProgramInGuest", "-interactive", "C:\Scripts\payload.exe", "-u",  "%s" % (url))
+    #output = self.__call_vmrun__("runProgramInGuest", "-interactive", "C:\Scripts\payload.exe", "-u",  "%s" % (url))
     #output = self.__call_vmrun__("runProgramInGuest", "-interactive", self.pypath)
     #output = self.__call_vmrun__("runProgramInGuest", "-activeWindow", "calc.exe")  # DEBUG -- works!!
+    print("DON'T USE run_payload method")
     return
 
   def retrieve_results(self):
@@ -159,6 +163,15 @@ def startMitmProxy(workdir="./"):
   return proxy
 
 
+def queryBrowsing(url, vmurl="http://localhost:8080/browse/%s"):
+  """
+    Query the python script running on guest to browse url
+  """
+  urlb64 = base64.b64encode(url)
+  response = requests.get(vmurl % urlb64)
+  print("DEBUG: CODE: %d\n%s" % (response.status_code, response.text))
+  return
+
 def createDirectories(url):
   """
     Create a working directory to store snapshots, PCAP and proxy logs
@@ -196,7 +209,6 @@ def main():
     myvm =  VMWare(configuration.VMRUN, configuration.VMPATH)
     myvm.take_snapshot()     
     myvm.start_vm()
-    #myvm.upload_prerequities()
 
     workdir=createDirectories(results.url)
     # Recording Thread - w/ tcpdump
@@ -206,7 +218,7 @@ def main():
     proxy = startMitmProxy(workdir)
 
     # Browse website in VM
-    myvm.run_payload(results.url)
+    queryBrowsing(results.url, configuration.VMURL)
 
     # Stop recording
     if tcpdump is not None:
