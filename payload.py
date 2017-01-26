@@ -16,6 +16,7 @@
 """
 import argparse
 from selenium import webdriver
+from bottle import route, run, template # REST-API for client / server communication
 
 """
     Main function
