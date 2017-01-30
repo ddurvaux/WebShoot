@@ -6,7 +6,6 @@
 
     IDEA/TODO
        - multiple browser support
-       - register proxy logs
        - extract network artifact
        - search VT + Google Safe Browsing
        - extract JS and run JSBeautifuler
@@ -14,7 +13,7 @@
        - do diff between sessions
        - ...
 
-    Version: 0.0 - dev / poc Version
+    Version: 0.1 - Beta Version
 
     Copyright: Autopsit (N-Labs sprl) 2017
 """
@@ -41,8 +40,9 @@ class VMWare:
   vmuser = None
   vmpass = None
   scpath = "C:\Scripts"
-  payload = "payload.py"
-  debug = True
+  payload = "payload-rest.py"
+  wrapper = "payload.bat"
+  debug = False
 
   def __init__( self, vmrun, vmpath):
       self.vmrun  = vmrun
@@ -62,13 +62,13 @@ class VMWare:
       return
 
 
-  def take_snapshot(self):
-      self.__call_vmrun__("snapshot", "webshot snapshot")
+  def take_snapshot(self, snapshot="webshoot"):
+      self.__call_vmrun__("snapshot", snapshot)
       return
 
 
-  def revert_snapshot(self):
-      self.__call_vmrun__("revertToSnapshot", "webshot snapshot")
+  def revert_snapshot(self, snapshot="webshoot"):
+      self.__call_vmrun__("revertToSnapshot", snapshot)
       return
 
 
@@ -76,30 +76,37 @@ class VMWare:
       self.__call_vmrun__("deleteSnapshot", "webshot snapshot")
       return
 
-
   def upload_prerequities(self):
       # Check if script directory exists
       output = self.__call_vmrun__("directoryExistsInGuest", "C:\\Scripts\\")
       if "does not exist" in output:
         self.__call_vmrun__("createDirectoryInGuest", self.scpath)
 
-      # Copy payload to guest
-      self.__call_vmrun__("copyFileFromHostToGuest", self.payload, "%s\\%s" % (self.scpath, self.payload))
+      # Check if files exists in guest and upload if not
+      files = [ self.payload, self.wrapper ]
+      for f in files:
+        output = self.__call_vmrun__("fileExistsInGuest", "%s\\%s" % (self.scpath, f))
+        if "does not exist" in output:
+          if self.debug:
+            print "File: %s does not exist, uploading to %s." % (f, self.scpath)
+          self.__call_vmrun__("copyFileFromHostToGuest", f, "%s\\%s" % (self.scpath, f))
       return
 
 
-  def run_payload(self, url):
-    """
-      NOT WORKING !! Issue to pass arguments to Python - use REST API communication instead
-    """
-    #output = self.__call_vmrun__("runProgramInGuest", "-interactive", self.pypath, "%s\%s" % (self.scpath, self.payload), "-u",  "%s" % (url))
-    #output = self.__call_vmrun__("runProgramInGuest", "-activeWindow", "calc.exe")  # DEBUG -- works!!
-    print("DON'T USE run_payload method")
+  def run_payload(self):
+    self.__call_vmrun__("runProgramInGuest", "-noWait", "-activeWindow", "%s\\%s" % (self.scpath, self.wrapper))
     return
 
 
   def retrieve_results(self, workdir="./"):
     self.__call_vmrun__("copyFileFromGuestToHost", "%s\\%s" % (self.scpath, "results.zip"), "%s/%s" % (workdir, "results.zip"))
+    return
+
+  def enableDebug():
+    """
+      Turn on debugging
+    """
+    self.debug = True
     return
 
 
@@ -178,7 +185,6 @@ def queryBrowsing(url, vmurl="http://localhost:8080/browse/%s"):
   """
   urlb64 = base64.b64encode(url)
   response = requests.get(vmurl % urlb64)
-  print("DEBUG: CODE: %d\n%s" % (response.status_code, response.text))
   return
 
 def createDirectories(url):
@@ -216,10 +222,11 @@ def main():
 
     # Kick-off the analysis
     myvm =  VMWare(configuration.VMRUN, configuration.VMPATH)
-    myvm.take_snapshot()     
-    myvm.start_vm()
+    myvm.revert_snapshot(configuration.REFSNAPHSOT) # start from clean state
+    myvm.start_vm() # in case VM is paused
 
     workdir=createDirectories(results.url)
+
     # Recording Thread - w/ tcpdump
     tcpdump = recordPCAP(workdir)
     
@@ -240,10 +247,10 @@ def main():
 
     # Restore state of VM and cleanup
     myvm.retrieve_results(workdir)
-    myvm.stop_vm()
-    myvm.revert_snapshot()
-    return
+    myvm.revert_snapshot(configuration.REFSNAPHSOT) # restore clean state
 
+    # All done :)
+    return
 
 """
    Call main function
