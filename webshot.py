@@ -10,6 +10,8 @@
        - extract network artifact
        - search VT + Google Safe Browsing
        - extract JS and run JSBeautifuler
+       - browse list of websites
+       - do diff between sessions
        - ...
 
     Version: 0.0 - dev / poc Version
@@ -85,20 +87,19 @@ class VMWare:
       self.__call_vmrun__("copyFileFromHostToGuest", self.payload, "%s\\%s" % (self.scpath, self.payload))
       return
 
+
   def run_payload(self, url):
     """
       NOT WORKING !! Issue to pass arguments to Python - use REST API communication instead
     """
-    #output = self.__call_vmrun__("runScriptInGuest", self.pypath, "%s\\%s" % (self.scpath, self.payload))
     #output = self.__call_vmrun__("runProgramInGuest", "-interactive", self.pypath, "%s\%s" % (self.scpath, self.payload), "-u",  "%s" % (url))
-    #output = self.__call_vmrun__("runProgramInGuest", "-interactive", "C:\Scripts\payload.exe", "-u",  "%s" % (url))
-    #output = self.__call_vmrun__("runProgramInGuest", "-interactive", self.pypath)
     #output = self.__call_vmrun__("runProgramInGuest", "-activeWindow", "calc.exe")  # DEBUG -- works!!
     print("DON'T USE run_payload method")
     return
 
-  def retrieve_results(self):
-    # -- TODO --
+
+  def retrieve_results(self, workdir="./"):
+    self.__call_vmrun__("copyFileFromGuestToHost", "%s\\%s" % (self.scpath, "results.zip"), "%s/%s" % (workdir, "results.zip"))
     return
 
 
@@ -154,7 +155,7 @@ def recordPCAP(workdir="./"):
   return tcpdump
 
 
-def startMitmProxy(workdir="./"):
+def startMitmProxy(workdir="./", proxylog=None):
   """
     Launch MITMProxy to record all the requests done by the website
   """
@@ -164,7 +165,7 @@ def startMitmProxy(workdir="./"):
     if configuration.PROXYFWD is not None:
       proxycmd.append("-U")
       proxycmd.append(configuration.PROXYFWD)
-    proxy = subprocess.Popen(proxycmd)
+    proxy = subprocess.Popen(proxycmd, stdout=proxylog)
   except Exception as e:
     print("ERROR: no proxy for this run")
     print(e)
@@ -223,7 +224,8 @@ def main():
     tcpdump = recordPCAP(workdir)
     
     # Start proxy and record traffic
-    proxy = startMitmProxy(workdir)
+    proxylog = open("%s/%s" % (workdir, "proxy.log"), "w")
+    proxy = startMitmProxy(workdir, proxylog)
 
     # Browse website in VM
     queryBrowsing(results.url, configuration.VMURL)
@@ -233,11 +235,13 @@ def main():
       tcpdump.terminate()
     if proxy is not None:
       proxy.terminate()
+      proxylog.flush()
+      proxylog.close()
 
     # Restore state of VM and cleanup
-    myvm.retrieve_results()
-    #myvm.stop_vm()
-    #myvm.revert_snapshot()
+    myvm.retrieve_results(workdir)
+    myvm.stop_vm()
+    myvm.revert_snapshot()
     return
 
 

@@ -15,6 +15,7 @@
     Copyright: Autopsit (N-Labs sprl) 2017
 """
 import base64
+import zipfile
 from selenium import webdriver
 from bottle import Bottle, route, run, template # REST-API for client / server communication
 
@@ -33,6 +34,10 @@ def browse(b64url):
         "firefox" : webdriver.Firefox(),
     }    
 
+    # Create a zipfile with all the screenshots
+    archive = zipfile.ZipFile("./results.zip", "w")
+    archive.comment = "Browsing session for %s" % url
+
     # Take a screenshot with each browser
     for browser in browsers.keys():
             print("Browser %s about to start!\n" % browser)
@@ -41,7 +46,12 @@ def browse(b64url):
             browsers[browser].quit()
             print("Browser %s finished + screenshot saved!\n" % browser)
 
-    return "Done"
+            # Add to archive
+            archive.write("%s_screenshot.png" % browser)
+
+    # Close handles and cleanup
+    archive.close()
+    return "Done / result ready!"
 
 run(app, host='0.0.0.0', port=8080, debug=True)
 # That's all folks ;)
