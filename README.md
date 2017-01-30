@@ -27,7 +27,7 @@ Framework for analysis of suspicious website
 1. Set a password for user (required to run remotely script)
 1. Enable auto-logon of user
 1. Copy <tt>payload-rest.py</tt> to <tt>C:\Scripts\</tt> and run the script
-1. While the script is still RUNNING, take a snapshot name <tt>webshot</tt>
+1. While the script is still RUNNING, take a snapshot named<tt>webshot</tt>
 
 ## Usage
 
@@ -39,11 +39,11 @@ sudo python ./webshot.py -u "http://www.autopsit.org"
 
 In ./cases, you fill have the following structure:
 * A sub-directory with the FQDN
-** A sub directory per run of the script
-*** A capture of all the traffic passing through proxy: <tt>proxy_traffic.txt</tt>
-*** A logfile of the proxy output (MITMPROXY format): <tt>proxy.log</tt>
-*** A full tcpdump capture: <tt>capture.pcap</tt>
-*** A zip file with screenshots of the website for each browser selected in <tt>payload-rest.py</tt>
+ * A sub directory per run of the script
+  * A capture of all the traffic passing through proxy: <tt>proxy_traffic.txt</tt>
+   * A logfile of the proxy output (MITMPROXY format): <tt>proxy.log</tt>
+   * A full tcpdump capture: <tt>capture.pcap</tt>
+   * A zip file with screenshots of the website for each browser selected in <tt>payload-rest.py</tt>
 
 
 ## Others (cheat sheet)
