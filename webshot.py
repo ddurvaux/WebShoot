@@ -11,9 +11,10 @@
        - extract JS and run JSBeautifuler
        - browse list of websites
        - do diff between sessions
+       - add robustness
        - ...
 
-    Version: 0.1 - Beta Version
+    Version: 0.11 - Beta Version
 
     Copyright: Autopsit (N-Labs sprl) 2017
 """
@@ -210,22 +211,13 @@ def createDirectories(url):
   return None
 # --------------------------------------------------------------------------- #
 
-
-"""
-    Main function
-"""
-def main():
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--url', action='store', dest='url', help='URL to browse', required=True)
-    results = parser.parse_args()
-
+def captureWebSite(url):
     # Kick-off the analysis
     myvm =  VMWare(configuration.VMRUN, configuration.VMPATH)
     myvm.revert_snapshot(configuration.REFSNAPHSOT) # start from clean state
     myvm.start_vm() # in case VM is paused
 
-    workdir=createDirectories(results.url)
+    workdir=createDirectories(url)
 
     # Recording Thread - w/ tcpdump
     tcpdump = recordPCAP(workdir)
@@ -235,7 +227,7 @@ def main():
     proxy = startMitmProxy(workdir, proxylog)
 
     # Browse website in VM
-    queryBrowsing(results.url, configuration.VMURL)
+    queryBrowsing(url, configuration.VMURL)
 
     # Stop recording
     if tcpdump is not None:
@@ -248,6 +240,30 @@ def main():
     # Restore state of VM and cleanup
     myvm.retrieve_results(workdir)
     myvm.revert_snapshot(configuration.REFSNAPHSOT) # restore clean state
+    return
+
+
+
+"""
+    Main function
+"""
+def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u', '--url', action='store', dest='url', help='URL to browse', required=False)
+    parser.add_argument('-l', '--list', action='store', dest='list', help='Load URL from a list file', required=False)
+    results = parser.parse_args()
+
+    # Adapt behaviour based on arguments
+    if results.url:
+      captureWebSite(results.url)
+    elif results.list:
+      fd = open(results.list, 'r')
+      for url in fd:
+        captureWebSite(url)
+      fd.close()
+    else:
+      parser.print_help()
 
     # All done :)
     return
