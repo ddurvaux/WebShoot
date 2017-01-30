@@ -26,7 +26,7 @@ Framework for analysis of suspicious website
 1. Install Selenium drivers for Internet Explorer and Firefox
 1. Set a password for user (required to run remotely script)
 1. Enable auto-logon of user
-1. Copy <tt>payload-rest.py</tt> to <tt>C:\Scripts\</tt> and run the script
+1. Copy <tt>payload-rest.py</tt> to <tt>C:\Scripts</tt> and run the script
 1. While the script is still RUNNING, take a snapshot named<tt>webshot</tt>
 
 ## Usage
@@ -34,6 +34,7 @@ Framework for analysis of suspicious website
 <pre>
 sudo python ./webshot.py -u "http://www.autopsit.org"
 </pre>
+
 
 ## Output
 
