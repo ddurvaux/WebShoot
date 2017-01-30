@@ -87,7 +87,6 @@ class VMWare:
       return
 
   def run_payload(self, url):
-    
     """
       NOT WORKING !! Issue to pass arguments to Python - use REST API communication instead
     """
@@ -100,10 +99,15 @@ class VMWare:
     return
 
   def retrieve_results(self):
+    # -- TODO --
     return
 
 
   def __call_vmrun__(self, cmd, *options):
+    """
+      Execute vmrun command with options
+      and retrieve stdout output
+    """
     output = None
     fullcmd = []
     try:
@@ -157,7 +161,11 @@ def startMitmProxy(workdir="./"):
   """
   proxy = None
   try:
-    proxy = subprocess.Popen([configuration.PROXYCMD, "-w", "%s/%s" % (workdir, "proxy.txt")])
+    proxycmd = [configuration.PROXYCMD, "-b", configuration.PROXYHOST, "-p", configuration.PROXYPORT, "-w", "%s/%s" % (workdir, "proxy.txt")]
+    if configuration.PROXYFWD is not None:
+      proxycmd.append("-U")
+      proxycmd.append(configuration.PROXYFWD)
+    proxy = subprocess.Popen()
   except:
     print("ERROR: no proxy for this run")
   return proxy
