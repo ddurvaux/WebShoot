@@ -6,8 +6,7 @@
 
     IDEA/TODO
        - multiple browser support
-       - start/stop network capture
-       - start/stop OS monitoring (process, registry changes...)
+       - register proxy logs
        - extract network artifact
        - search VT + Google Safe Browsing
        - extract JS and run JSBeautifuler
@@ -161,13 +160,14 @@ def startMitmProxy(workdir="./"):
   """
   proxy = None
   try:
-    proxycmd = [configuration.PROXYCMD, "-b", configuration.PROXYHOST, "-p", configuration.PROXYPORT, "-w", "%s/%s" % (workdir, "proxy.txt")]
+    proxycmd = [configuration.PROXYCMD, "-b", configuration.PROXYHOST, "-p", configuration.PROXYPORT, "-w", "%s/%s" % (workdir, "proxy_traffic.txt"), "--anticache", "--anticomp", "--insecure"]
     if configuration.PROXYFWD is not None:
       proxycmd.append("-U")
       proxycmd.append(configuration.PROXYFWD)
-    proxy = subprocess.Popen()
-  except:
+    proxy = subprocess.Popen(proxycmd)
+  except Exception as e:
     print("ERROR: no proxy for this run")
+    print(e)
   return proxy
 
 

@@ -7,8 +7,8 @@
 
     IDEA/TODO
        - multiple browser support
-       - start/stop network capture
        - start/stop OS monitoring (process, registry changes...)
+       - make a zip of all local results
 
     Version: 0.0 - dev / poc Version
 
