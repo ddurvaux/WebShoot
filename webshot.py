@@ -214,6 +214,11 @@ def createDirectories(url):
 
 
 def extractTCPObject(workdir):
+  """
+    Run tcpflow on the PCAP captured during browsing session.
+    all object will be dump to "output" directory in the
+    working directory passed in argument
+  """
   tcpflow = None
   try:
     tcpflow = subprocess.Popen([configuration.TCPFLOW, "-r", "%s/capture.pcap" % workdir, "-o", "%s/%s" % (workdir, "output")])
@@ -223,6 +228,12 @@ def extractTCPObject(workdir):
 
 
 def extractURLFromLog(logpath):
+  """
+    Parse MITMDUMP output and extract all the URL queried
+
+    Return and hash table with following structure:
+    { url : { method: [GET|POST] } }
+  """
   urls = {}
 
   try:
@@ -243,12 +254,29 @@ def extractURLFromLog(logpath):
   return urls
 
 
-def checkGoogleSafeBrowing():
-  return
+def checkGoogleSafeBrowing(urls):
+  """
+    For each URL inside the hashtable, check Google Safe Browing and add
+    a sub-key "GoogleSB" and a value describing the status known at Google
+  """
+  return urls
+
+def checkVirusTotal(urls):
+  """
+    For each URL inside the hashtable, check VirusTotal and add
+    a sub-key "VT" and a value describing the status known at Google
+  """
+  return urls
 
 
 def diffHistory():
   return
+
+
+def saveToJSON(urls, jsonpath="./data.json"):
+  print("NOT IMPLEMENTED")
+  return
+
 
 # --------------------------------------------------------------------------- #
 
