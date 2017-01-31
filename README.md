@@ -22,6 +22,7 @@ Framework for analysis of suspicious website
 1. Install operating system of choice (dev/test on Windows 10)
 1. Install Python 2.7
 1. <tt>pip install selenium</tt>
+1. <tt>pip install Bottle</tt>
 1. Install Firefox
 1. Install Selenium drivers for Internet Explorer and Firefox
 1. Set a password for user (required to run remotely script)
