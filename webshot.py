@@ -213,7 +213,12 @@ def createDirectories(url):
   return None
 
 
-def extractTCPObject():
+def extractTCPObject(workdir):
+  tcpflow = None
+  try:
+    tcpflow = subprocess.Popen([configuration.TCPFLOW, "-r", "%s/capture.pcap" % workdir, "-o", "%s/%s" % (workdir, "output")])
+  except:
+    print("ERROR: no tcpflow capture for this run")
   return
 
 
@@ -280,7 +285,9 @@ def captureWebSite(url):
     # Post-processing
     urls = extractURLFromLog("%s/%s" % (workdir, "proxy.log"))
     print urls # debug
+    extractTCPObject(workdir)
 
+    # All done :)
     return
 
 
