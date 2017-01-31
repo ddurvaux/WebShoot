@@ -12,9 +12,10 @@
        - browse list of websites
        - do diff between sessions
        - add robustness
+       - add multi-threading for post processing
        - ...
 
-    Version: 0.11 - Beta Version
+    Version: 0.12 - Beta Version
 
     Copyright: Autopsit (N-Labs sprl) 2017
 """
@@ -188,6 +189,7 @@ def queryBrowsing(url, vmurl="http://localhost:8080/browse/%s"):
   response = requests.get(vmurl % urlb64)
   return
 
+
 def createDirectories(url):
   """
     Create a working directory to store snapshots, PCAP and proxy logs
@@ -209,6 +211,40 @@ def createDirectories(url):
   except:
     print("FATAL ERROR: impossible to create case directory for %s" % url)    
   return None
+
+
+def extractTCPObject():
+  return
+
+
+def extractURLFromLog(logpath):
+  urls = {}
+
+  try:
+    fd = open(logpath, 'r')
+
+    for line in fd:
+      # strip of http or https and keep the fqdn
+      m = re.search("(GET|POST)\s+(.*)$", line)
+      if(m is not None):
+        method = m.group(1)
+        url = m.group(2)
+        urls[url] = {"method" : method}
+
+    fd.close()
+  except Exception as e:
+    print("FATAL ERROR: impossible to parse mitmdump log (%s)" % logpath)    
+    print(e)
+  return urls
+
+
+def checkGoogleSafeBrowing():
+  return
+
+
+def diffHistory():
+  return
+
 # --------------------------------------------------------------------------- #
 
 def captureWebSite(url):
@@ -240,8 +276,12 @@ def captureWebSite(url):
     # Restore state of VM and cleanup
     myvm.retrieve_results(workdir)
     myvm.revert_snapshot(configuration.REFSNAPHSOT) # restore clean state
-    return
 
+    # Post-processing
+    urls = extractURLFromLog("%s/%s" % (workdir, "proxy.log"))
+    print urls # debug
+
+    return
 
 
 """
@@ -267,6 +307,7 @@ def main():
 
     # All done :)
     return
+
 
 """
    Call main function
