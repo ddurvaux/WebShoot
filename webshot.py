@@ -25,12 +25,19 @@ import configuration
 # Packages required
 import os
 import re
+import sys
 import base64
 import requests
 import argparse
 import datetime
 import subprocess
 from threading import Thread
+
+# Import local libraries
+libpath = "%s/lib/" % os.path.abspath(os.path.dirname(sys.argv[0]))
+sys.path.append(libpath)
+sys.path.append("%s/%s" % (libpath, "Google-Tools"))
+import safebrowsing
 
 
 """
@@ -244,6 +251,9 @@ def extractURLFromLog(logpath):
 
 
 def checkGoogleSafeBrowing():
+  safebrowsing.gsbapi = configuration.GSBAPI
+  if configuration.PROXYFWD is not None:
+    
   return
 
 
