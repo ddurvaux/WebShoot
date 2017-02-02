@@ -272,7 +272,7 @@ def checkGoogleSafeBrowing(urls):
   try:
     # check if there is some specific configuration to communicate with Google
     if configuration.SSLPROXY is not None:
-      proxy = safebrowsing.getOpenerWithProxyFromString(configuration.PROXYFWD)
+      proxy = safebrowsing.getOpenerWithProxyFromString(configuration.SSLPROXY)
     elif configuration.PROXYFWD is not None:
       proxy = safebrowsing.getOpenerWithProxyFromString(configuration.PROXYFWD)
   except:
