@@ -8,7 +8,7 @@ Framework for analysis of suspicious website
 * Launch a VM and open a website with multiple browsers.
 * For each browser, do a screenshot of the loaded webpage.
 * Take a PCAP of the full browsing session
-* Pass all requests through a proxy (currently Burp)
+* Pass all requests through a proxy (currently mitmdump)
 * Automate the full process
 
 ## Installation
@@ -32,6 +32,10 @@ Framework for analysis of suspicious website
 
 ## Usage
 
+Define the configuration in <tt>configuration.py</tt>. 
+A skeleton of configuration is offered in <tt>default-configuration.py</tt>.
+
+When configuration is defined, execution is done with:
 <pre>
 sudo python ./webshot.py -u "http://www.autopsit.org"
 </pre>
