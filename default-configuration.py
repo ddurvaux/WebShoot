@@ -52,4 +52,9 @@ REFSNAPHSOT="webshoot"
 TCPFLOW="/usr/bin/tcpflow"
 
 # Google Safe Browsing API (required to validate url agaist GSB)
+# if (not recommended), a different proxy is required for upstream
+# connections to secure website like Google Safe Browsing, set
+# GSPROXY to a proxy address with format:
+# http://[<proxy user>]:[<proxy port]@[proxy host]:[proxy port]
 GSBAPI = ""
+SSLPROXY = None # ! not recommended !

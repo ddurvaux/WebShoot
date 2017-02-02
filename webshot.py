@@ -253,6 +253,7 @@ def extractURLFromLog(logpath):
         method = m.group(1)
         url = m.group(2)
         urls[url] = {"method" : method}
+        urls[url] = {"time" : datetime.datetime.today().strftime('%Y%m%d%H%M%S')}
 
     fd.close()
   except Exception as e:
@@ -266,6 +267,23 @@ def checkGoogleSafeBrowing(urls):
     For each URL inside the hashtable, check Google Safe Browing and add
     a sub-key "GoogleSB" and a value describing the status known at Google
   """
+  proxy = None
+  safebrowsing.gsbapi = configuration.GSBAPI
+  try:
+    # check if there is some specific configuration to communicate with Google
+    if configuration.SSLPROXY is not None:
+      proxy = safebrowsing.getOpenerWithProxyFromString(configuration.PROXYFWD)
+    elif configuration.PROXYFWD is not None:
+      proxy = safebrowsing.getOpenerWithProxyFromString(configuration.PROXYFWD)
+  except:
+      proxy = None # try without proxy
+
+  for url in urls.keys():
+    retcode = safebrowsing.getHuntingResult([url], proxy)
+    if retcode == safebrowsing.GSB_ALL_CLEAN:
+      urls[url]["SafeBrowsing"] = "Clean"
+    else:
+      urls[url]["SafeBrowsing"] = "Unsafe"
   return urls
 
 
@@ -319,9 +337,11 @@ def captureWebSite(url):
     myvm.revert_snapshot(configuration.REFSNAPHSOT) # restore clean state
 
     # Post-processing
-    urls = extractURLFromLog("%s/%s" % (workdir, "proxy.log"))
-    print urls # debug
     extractTCPObject(workdir)
+    urls = extractURLFromLog("%s/%s" % (workdir, "proxy.log"))
+    urls = checkGoogleSafeBrowing(urls)
+    saveToJSON(urls)
+    print urls # debug  
 
     # All done :)
     return
@@ -333,8 +353,15 @@ def captureWebSite(url):
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser()
+
+    # URL to browse
     parser.add_argument('-u', '--url', action='store', dest='url', help='URL to browse', required=False)
     parser.add_argument('-l', '--list', action='store', dest='list', help='Load URL from a list file', required=False)
+
+    # Extended set of features
+    parser.add_argument('-d', '--diff', action='store', dest='url', help='Path to a previous browsing session result (json) - UNIMPLEMENTED', required=False)
+
+    # Parse parameters :)
     results = parser.parse_args()
 
     # Adapt behaviour based on arguments
