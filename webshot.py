@@ -26,6 +26,7 @@ import configuration
 import os
 import re
 import sys
+import json
 import base64
 import requests
 import argparse
@@ -295,13 +296,93 @@ def checkVirusTotal(urls):
   return urls
 
 
-def diffHistory():
-  return
+def diffHistory(file1, file2, histfile="./comparison.json"):
+  """
+    POC function - not yet ready for prod
+
+    file structure:
+    {
+      'http://www.autopsit.com/assets/css/font-awesome.min.css': 
+        {'SafeBrowsing': 'Clean', 
+         'time': '20170202164334'
+        }, 
+    }
+
+    TODO: 
+      - handle case where a difffile is given as file1 or file2
+      - print all URLs not in browse1.keys() AND browse2.keys()
+  """
+  diffstruct = {}
+  compkeys = ["SafeBrowsing"] # list of keys to compare
+  
+  browse1 = jsonToStruct(file1)
+  browse2 = jsonToStruct(file2)
+
+  # Compare browse1 with browse2 - browse1 will start as reference point
+  for url in browse1.keys():
+    if url in browse2.keys(): # same url in both file! :)
+      # compare subkeys
+      for key in compkeys:
+        diffstruct[url] = {}
+        if browse1[url][key] == browse2[url][key]:
+          diffstruct[url][key] = browse1[url][key]
+        else:
+          diffstruct[url][key] = "CHANGED"
+          if "Changes" not in diffstruct[url].keys():
+            diffstruct[url]["Changes"] = {}
+          diffstruct[url]["Changes"][key] = { browse1[url]["time"] : browse1[url][key],
+                                              browse2[url]["time"] : browse2[url][key]}
+
+      # compare times
+      # time format is '%Y%m%d%H%M%S'
+      time1 = datetime.datetime.strptime(browse1[url]["time"], "%Y%m%d%H%M%S").time()
+      time2 = datetime.datetime.strptime(browse1[url]["time"], "%Y%m%d%H%M%S").time()
+      if time1 < time2:
+        diffstruct[url]["First seen"] = browse1[url]["time"]
+        diffstruct[url]["Last seen"] = browse2[url]["time"]
+      else:
+        diffstruct[url]["First seen"] = browse2[url]["time"]
+        diffstruct[url]["Last seen"] = browse1[url]["time"]
+
+      # unique urls:
+      unique = {}
+      for url in browse1.keys():
+        if url not in browse2.keys():
+          unique[url] =  browse1[url]
+      for url in browse2.keys():
+        if url not in browse1.keys():
+          unique[url] =  browse2[url]
+      if len(unique) > 0:
+        diffstruct["Unique URLs"] = unique
+
+  # All done :)
+  saveToJSON(diffstruct, histfile)
+  return diffstruct
 
 
 def saveToJSON(urls, jsonpath="./data.json"):
-  print("NOT IMPLEMENTED")
+  try:
+    fd=open(jsonpath, "w")
+    json.dump(urls, fd)
+    fd.close()
+  except Exception as e:
+    print("Failed to save result to %s" % jsonpath)
+    print(e)
   return
+
+
+def jsonToStruct(jsonpath):
+  urls = {}
+  try:
+    fd=open(jsonpath, "r")
+    urls = json.load(fd)
+    fd.close()
+    return urls
+  except Exception as e:
+    print("Failed to load JSON file: %s" % jsonpath)
+    print(e)
+    return None
+  return urls
 
 
 # --------------------------------------------------------------------------- #
@@ -340,8 +421,7 @@ def captureWebSite(url):
     extractTCPObject(workdir)
     urls = extractURLFromLog("%s/%s" % (workdir, "proxy.log"))
     urls = checkGoogleSafeBrowing(urls)
-    saveToJSON(urls)
-    print urls # debug  
+    saveToJSON(urls, "%s/%s" % (workdir, "result.json"))
 
     # All done :)
     return
@@ -353,13 +433,15 @@ def captureWebSite(url):
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
 
     # URL to browse
-    parser.add_argument('-u', '--url', action='store', dest='url', help='URL to browse', required=False)
-    parser.add_argument('-l', '--list', action='store', dest='list', help='Load URL from a list file', required=False)
+    group.add_argument('-u', '--url', action='store', dest='url', help='URL to browse', required=False)
+    group.add_argument('-l', '--list', action='store', dest='list', help='Load URL from a list file', required=False)
 
     # Extended set of features
-    parser.add_argument('-d', '--diff', action='store', dest='url', help='Path to a previous browsing session result (json) - UNIMPLEMENTED', required=False)
+    group.add_argument('-d', '--diff', action='store', dest='diff', nargs=2, help='Path to 2 previous browsing session result (json)', required=False)
+    parser.add_argument('-s', '--save_history', action='store', dest='history', help='Holder to save comparison result.  To use with -d flag', required=False)
 
     # Parse parameters :)
     results = parser.parse_args()
@@ -372,6 +454,18 @@ def main():
       for url in fd:
         captureWebSite(url)
       fd.close()
+
+    # Handle comparison mode
+    elif results.diff:
+      for f in results.diff:
+        if not os.path.isfile(f):
+          print("%s does not exist! Please provide a valid browsing session result." % f)
+          parser.print_help()
+          return
+      if results.history:
+        diffHistory(results.diff[0], results.diff[1], results.history)
+      else:
+        diffHistory(results.diff[0], results.diff[1])
     else:
       parser.print_help()
 
