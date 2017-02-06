@@ -58,3 +58,6 @@ TCPFLOW="/usr/bin/tcpflow"
 # http://[<proxy user>]:[<proxy port]@[proxy host]:[proxy port]
 GSBAPI = ""
 SSLPROXY = None # ! not recommended !
+
+# VirusTotal API key (required to validate url against VT)
+VTAPI = ""

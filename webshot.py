@@ -293,6 +293,34 @@ def checkVirusTotal(urls):
     For each URL inside the hashtable, check VirusTotal and add
     a sub-key "VT" and a value describing the status known at Google
   """
+
+  # Query Virus Total for each URL
+  headers = {
+    "Accept-Encoding": "gzip, deflate",
+    "User-Agent" : "gzip,  Webshoot VT query"
+  }
+  for url in urls.keys():
+    params = {
+       'apikey': '%s' % (configuration.VTAPI), 
+       'resource':'%s' % (url) 
+    }
+
+    try:
+      response = requests.post('https://www.virustotal.com/vtapi/v2/url/report',
+            params=params, headers=headers)
+      json_response = response.json()
+
+      # Parse result
+      print("DEBUG:")      #DEBUG
+      print(json_response) #DEBUG
+      vtdata = json.loads(json_response)
+      urls[url]["VirusTotal"] = vtdata
+    
+    except Exception as e:
+      print("ERROR, impossible to query VirusTotal for %s" % url)
+      print(e)
+
+  # Done
   return urls
 
 
