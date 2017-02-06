@@ -62,9 +62,21 @@ class CloudProvider():
 
 
 class Azure(CloudProvider):
+  """
+    Rerefence: 
+    https://docs.microsoft.com/en-us/azure/cloud-services/cloud-services-python-how-to-use-service-management
+  """
+  from azure import *
+  from azure.servicemanagement import *
 
-  def __init__(self):
-    pass
+  subscription_id = None
+  certificate_path = None
+
+  def __init__(self, subscription_id, certificate_path):
+    self.subscription_id = subscription_id
+    self.certificate_path = certificate_path
+    self.sms = ServiceManagementService(self.subscription_id, self.certificate_path)
+    return
      
 
   def start_vm(self):
