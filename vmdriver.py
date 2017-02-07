@@ -64,7 +64,10 @@ class CloudProvider():
 class Azure(CloudProvider):
   """
     Rerefence: 
-    https://docs.microsoft.com/en-us/azure/cloud-services/cloud-services-python-how-to-use-service-management
+    - https://docs.microsoft.com/en-us/azure/cloud-services/cloud-services-python-how-to-use-service-management
+    - http://azure-sdk-for-python.readthedocs.io/en/latest/
+
+    ABANDONNED - no way to do snapshots....
   """
   from azure import *
   from azure.servicemanagement import *
