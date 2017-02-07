@@ -56,8 +56,13 @@ TCPFLOW="/usr/bin/tcpflow"
 # connections to secure website like Google Safe Browsing, set
 # GSPROXY to a proxy address with format:
 # http://[<proxy user>]:[<proxy port]@[proxy host]:[proxy port]
-GSBAPI = ""
+# 
+# To disable Google Safe Browsing, set GSBAPI to None
+GSBAPI = None
 SSLPROXY = None # ! not recommended !
 
 # VirusTotal API key (required to validate url against VT)
-VTAPI = ""
+# to disable VirusTotal set VTAPI to None
+# SSLPROXY variable will be used to communicate to outside if 
+# defined
+VTAPI = None

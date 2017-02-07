@@ -293,6 +293,19 @@ def checkVirusTotal(urls):
     For each URL inside the hashtable, check VirusTotal and add
     a sub-key "VT" and a value describing the status known at Google
   """
+  # proxy handling
+  proxies = None
+  # check if there is some specific configuration to communicate with VT
+  if configuration.SSLPROXY is not None:
+    proxies = {
+      'http': configuration.SSLPROXY,
+      'https': configuration.SSLPROXY,
+    }
+  elif configuration.PROXYFWD is not None:
+    proxies = {
+      'http': configuration.PROXYFWD,
+      'https': configuration.PROXYFWD,
+    }
 
   # Query Virus Total for each URL
   headers = {
@@ -304,17 +317,13 @@ def checkVirusTotal(urls):
        'apikey': '%s' % (configuration.VTAPI), 
        'resource':'%s' % (url) 
     }
-
     try:
       response = requests.post('https://www.virustotal.com/vtapi/v2/url/report',
-            params=params, headers=headers)
+            params=params, headers=headers, proxies=proxies)
       json_response = response.json()
 
       # Parse result
-      print("DEBUG:")      #DEBUG
-      print(json_response) #DEBUG
-      vtdata = json.loads(json_response)
-      urls[url]["VirusTotal"] = vtdata
+      urls[url]["VirusTotal"] = json_response
     
     except Exception as e:
       print("ERROR, impossible to query VirusTotal for %s" % url)
@@ -424,19 +433,28 @@ def captureWebSite(url):
     workdir=createDirectories(url)
 
     # Recording Thread - w/ tcpdump
+    print("Starting recording of network traffic...")
     tcpdump = recordPCAP(workdir)
+    if tcpdump is None:
+      print("WARNING! tcpdump is not running!!")
     
     # Start proxy and record traffic
+    print("Starting proxy...")
     proxylog = open("%s/%s" % (workdir, "proxy.log"), "w")
     proxy = startMitmProxy(workdir, proxylog)
+    if proxy is None:
+      print("WARNING: no proxy - Internet access probably broken!")
 
     # Browse website in VM
+    print("Querying url: %s" % url)
     queryBrowsing(url, configuration.VMURL)
 
     # Stop recording
     if tcpdump is not None:
+      print("Stopping recording.")
       tcpdump.terminate()
     if proxy is not None:
+      print("Stopping proxy.")
       proxy.terminate()
       proxylog.flush()
       proxylog.close()
@@ -444,12 +462,18 @@ def captureWebSite(url):
     # Restore state of VM and cleanup
     myvm.retrieve_results(workdir)
     myvm.revert_snapshot(configuration.REFSNAPHSOT) # restore clean state
+    print("State reverted to normal.")
 
     # Post-processing
+    print("Starting post-processing...")
     extractTCPObject(workdir)
     urls = extractURLFromLog("%s/%s" % (workdir, "proxy.log"))
-    urls = checkGoogleSafeBrowing(urls)
+    if(configuration.GSBAPI is not None and configuration.GSBAPI != ""):
+      urls = checkGoogleSafeBrowing(urls)
+    if(configuration.VTAPI is not None and configuration.VTAPI != ""):
+      urls = checkVirusTotal(urls)
     saveToJSON(urls, "%s/%s" % (workdir, "result.json"))
+    print("Post-processing completed.")
 
     # All done :)
     return

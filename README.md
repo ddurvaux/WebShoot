@@ -59,3 +59,13 @@ Note for Proxy users, to use PIP, set proxy with the following command
 	set HTTP_PROXY=http://[username]:[password]@[proxy address]:[port]
 </pre>
 
+## Known issues
+
+* When <tt>HTTP_PROXY</tt> is defined, it interfere with normal script behaviour.  Variables should be unset for the execution:
+<pre>
+	unset HTTP_PROXY
+	unset HTTPS_PROXY
+	unset http_proxy
+	unset https_proxy
+</pre>
+
