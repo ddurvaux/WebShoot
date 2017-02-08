@@ -8,6 +8,11 @@
 # - on Mac OS X: /Applications/VMware\ Fusion.app/Contents/Library/vmrun
 # - on Linux: /usr/bin/vmrun
 VMRUN="/usr/bin/vmrun"
+# Configuration specific to ESXi
+ESXI_HOST=None # format 'https://<hostName or IPaddr>/sdk'
+ESXI_USER=None
+ESXI_PASS=None
+ESXI_TYPE="esx" # set to 'esx' for direct host or 'vc' for vSphere
 
 # Path to virtual machine to use (give path to .vmx file)
 VMPATH="/media/vmware/Victim Windows 10/Victim Windows 10.vmx"

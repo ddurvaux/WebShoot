@@ -5,14 +5,13 @@
     Set of scripts to open a website in multiple browser and retrieve data
 
     IDEA/TODO
-       - multiple browser support
-       - extract network artifact
-       - search VT + Google Safe Browsing
+       - multiple browser support 
        - extract JS and run JSBeautifuler
        - browse list of websites
        - do diff between sessions
        - add robustness
        - add multi-threading for post processing
+       - run VT on all the artifacts extrated from flow
        - ...
 
     Version: 0.12 - Beta Version
@@ -129,6 +128,21 @@ class VMWare:
     fullcmd = []
     try:
       fullcmd.append(self.vmrun)
+
+      # handle remote auth (ESXi)
+      if(configuration.ESXI_HOST is not None):
+        if(configuration.ESXI_USER is not None and configuration.ESXI_PASS is not None):
+            pass # HERE
+            fullcmd.append("-T")
+            fullcmd.append(configuration.ESXI_TYPE)
+            fullcmd.append("-h")
+            fullcmd.append(configuration.ESXI_HOST)
+            fullcmd.append("-u")
+            fullcmd.append(configuration.ESXI_USER)
+            fullcmd.append("-p")
+            fullcmd.append(configuration.ESXI_PASS)
+        else:
+          print("Authentification for %s has to be defined in configuration!" % configuration.ESXI_HOST)
 
       # handle guest host auth
       if(configuration.GUEST_USER is not None and configuration.GUEST_USER != ""):
