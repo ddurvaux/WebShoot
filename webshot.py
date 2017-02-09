@@ -12,6 +12,7 @@
        - add robustness
        - add multi-threading for post processing
        - run VT on all the artifacts extrated from flow
+       - add DNS request recording 
        - ...
 
     Version: 0.12 - Beta Version
@@ -219,11 +220,11 @@ def createDirectories(url):
   try:
     # strip of http or https and keep the fqdn
     m = re.search("(http://|https://)?([\w+\.]+)/?(.*)", url)
-    url = m.group(2)
+    fqdn = m.group(2)
     date = datetime.datetime.today().strftime('%Y%m%d%H%M%S')
 
     # create directory
-    dirname = "./cases/%s/%s" % (url, date)
+    dirname = "./cases/%s/%s/%s" % (fqdn, base64.b64encode(url), date)
     try:
       os.makedirs(dirname)
     except Exception as e:
@@ -411,10 +412,10 @@ def diffHistory(file1, file2, histfile="./comparison.json"):
   return diffstruct
 
 
-def saveToJSON(urls, jsonpath="./data.json"):
+def saveToJSON(struct, jsonpath="./data.json"):
   try:
     fd=open(jsonpath, "w")
-    json.dump(urls, fd)
+    json.dump(struct, fd)
     fd.close()
   except Exception as e:
     print("Failed to save result to %s" % jsonpath)
@@ -423,17 +424,17 @@ def saveToJSON(urls, jsonpath="./data.json"):
 
 
 def jsonToStruct(jsonpath):
-  urls = {}
+  struct = {}
   try:
     fd=open(jsonpath, "r")
-    urls = json.load(fd)
+    struct = json.load(fd)
     fd.close()
-    return urls
+    return struct
   except Exception as e:
     print("Failed to load JSON file: %s" % jsonpath)
     print(e)
     return None
-  return urls
+  return struct
 
 
 # --------------------------------------------------------------------------- #
@@ -444,7 +445,18 @@ def captureWebSite(url):
     myvm.revert_snapshot(configuration.REFSNAPHSOT) # start from clean state
     myvm.start_vm() # in case VM is paused
 
+    history = {}
+    histpath = "./history.json"
+    if(os.path.isfile(histpath)):
+      history = jsonToStruct(histpath)
     workdir=createDirectories(url)
+    if(url in history.keys()):
+      history[url]["history"].append(datetime.datetime.today().strftime('%d/%m/%Y %H:%M:%S'))
+    else:
+      history[url] = {
+        "workdir" : workdir,
+        "history" : [datetime.datetime.today().strftime('%d/%m/%Y %H:%M:%S')]
+      }
 
     # Recording Thread - w/ tcpdump
     print("Starting recording of network traffic...")
@@ -490,6 +502,7 @@ def captureWebSite(url):
     print("Post-processing completed.")
 
     # All done :)
+    saveToJSON(history, histpath)
     return
 
 
